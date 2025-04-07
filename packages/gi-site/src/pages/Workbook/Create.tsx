@@ -1,0 +1,244 @@
+import { utils } from '@antv/gi-sdk';
+import { Button, Form, Input, Select } from 'antd';
+import React, { useEffect } from 'react';
+import { useImmer } from 'use-immer';
+import SegmentedTabs from '../../components/SegmentedTabs';
+import { getSearchParams } from '../../components/utils';
+import * as DatasetService from '../../services/dataset';
+import getConfigByEngineId from '../../services/initial.data/getConfigByEngineId';
+import * as ProjectServices from '../../services/project';
+import * as TemplateService from '../../services/template';
+import { IDataset, ITemplate } from '../../services/typing';
+import Recover from '../Workspace/Recover';
+import TemplateDesc from './TemplateDesc';
+import $i18n from '../../i18n';
+
+interface CreateProps {}
+const styles = {
+  container: {
+    borderRadius: '8px',
+    padding: '24px',
+    background: 'unset',
+  },
+};
+
+const Create: React.FunctionComponent<CreateProps> = props => {
+  //@ts-ignore
+  const { history } = props;
+  const [form] = Form.useForm();
+  const [state, updateState] = useImmer({
+    name: '',
+    datasetId: '',
+    templateId: '',
+    templates: [] as ITemplate[],
+    template: {},
+    datasets: [] as IDataset[],
+    dataset: {} as IDataset,
+  });
+
+  useEffect(() => {
+    (async () => {
+      const { searchParams } = getSearchParams(window.location);
+      const datasetId = searchParams.get('datasetId');
+      const templateId = searchParams.get('templateId');
+      const datasets = await DatasetService.allLists();
+
+      const templates = [...(await TemplateService.listInner()), ...(await TemplateService.list())];
+      form.setFieldsValue({
+        datasetId: datasetId || '',
+        templateId: templateId || '',
+      });
+      updateState(draft => {
+        //@ts-ignore
+        draft.templates = templates;
+        draft.datasets = datasets;
+        draft.templateId = templateId || '';
+        draft.datasetId = datasetId || '';
+        draft.template = templates.find(item => item.id === templateId) || {};
+        draft.dataset = datasets.find(item => item.id === datasetId) || {};
+      });
+    })();
+  }, []);
+
+  const { templates, datasets, template, dataset } = state;
+
+  /** 以下是计算的值 */
+  const datasetOptions = datasets.map(item => {
+    return {
+      ...item,
+      value: item.id,
+      label: `${item.name} (${item.id})`,
+    };
+  });
+  const templateOptions = templates.map(item => {
+    return {
+      ...item,
+      value: item.id,
+      label: item.name,
+    };
+  });
+
+  const handleChangeTemplate = (value, record) => {
+    updateState(draft => {
+      draft.templateId = value;
+      draft.template = record;
+    });
+  };
+  const handleChangeDataset = (value, record) => {
+    updateState(draft => {
+      draft.datasetId = value;
+      draft.dataset = record;
+    });
+  };
+
+  const handleSubmit = async () => {
+    //@ts-ignore
+    const values = await form.validateFields();
+    const { nodes, edges, layout, activeAssetsKeys, components } = getConfigByEngineId(
+      dataset.engineId,
+      JSON.parse(JSON.stringify(template)),
+    );
+
+    // 如果 nodes 和 edges 都是默认值，那么使用 defaultProjectConfig 替换
+    const isDefault = item => item.default === true;
+    const overwriteElements =
+      nodes.every(isDefault) && edges.every(isDefault) ? utils.generatorStyleConfigBySchema(dataset.schemaData) : {};
+
+    const projectId = await ProjectServices.create({
+      datasetId: dataset.id,
+      name: values.name,
+      status: 1, // 1 正常项目， 0 删除项目
+      tag: '',
+      members: '',
+      projectConfig: {
+        nodes,
+        edges,
+        layout,
+        components,
+        ...overwriteElements,
+      },
+      activeAssetsKeys,
+      type: 'project',
+    });
+    history.push(`/workspace/${projectId}`);
+  };
+
+  const handleRecover = async params => {
+    try {
+      const { dataset, workbook, GI_ASSETS_PACKAGES } = params;
+      const IS_V2_VERSION = dataset && workbook && GI_ASSETS_PACKAGES; //只要有这三个字段，就判定是V2版本
+
+      const PRE_GI_ASSETS_PACKAGES = JSON.parse(localStorage.getItem('GI_ASSETS_PACKAGES') || '{}');
+      localStorage.setItem('GI_ASSETS_PACKAGES', JSON.stringify({ ...PRE_GI_ASSETS_PACKAGES, ...GI_ASSETS_PACKAGES }));
+
+      if (IS_V2_VERSION) {
+        await DatasetService.createDataset(dataset);
+        const projectId = await ProjectServices.create(workbook);
+        history.push(`/workspace/${projectId}`);
+        return;
+      }
+      //剩下的都是V1版本的
+      const { name, datasetId, projectConfig, activeAssetsKeys, members } = params;
+      const projectId = await ProjectServices.create({
+        datasetId,
+        name,
+        status: 0, // 0 正常项目， 1删除项目
+        members,
+        projectConfig,
+        activeAssetsKeys,
+        type: 'project',
+      });
+      history.push(`/workspace/${projectId}?nav=data`);
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+  return (
+    <div>
+      <SegmentedTabs
+        style={styles.container}
+        defaultActive="new"
+        items={[
+          {
+            key: 'new',
+            label: $i18n.get({ id: 'gi-site.pages.Workbook.Create.CreateACanvas', dm: '新建画布' }),
+            children: (
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  label={$i18n.get({ id: 'gi-site.pages.Workbook.Create.NameOfWorkbook', dm: '工作簿名称' })}
+                  name="name"
+                  rules={[
+                    {
+                      required: true,
+                      message: $i18n.get({
+                        id: 'gi-site.pages.Workbook.Create.EnterACanvasName',
+                        dm: '请输入画布名称!',
+                      }),
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder={$i18n.get({
+                      id: 'gi-site.pages.Workbook.Create.PleaseFillInTheCanvas',
+                      dm: '请填写画布名称',
+                    })}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label={$i18n.get({ id: 'gi-site.pages.Workbook.Create.SelectADataset', dm: '选择数据集' })}
+                  name="datasetId"
+                  rules={[
+                    {
+                      required: true,
+                      message: $i18n.get({ id: 'gi-site.pages.Workbook.Create.SelectADataset.1', dm: '请选择数据集!' }),
+                    },
+                  ]}
+                >
+                  <Select
+                    placeholder={$i18n.get({
+                      id: 'gi-site.pages.Workbook.Create.SelectADataset.2',
+                      dm: '请选择数据集',
+                    })}
+                    options={datasetOptions}
+                    onChange={handleChangeDataset}
+                  ></Select>
+                </Form.Item>
+                <Form.Item
+                  label={$i18n.get({ id: 'gi-site.pages.Workbook.Create.SelectTemplate', dm: '选择模版' })}
+                  name="templateId"
+                  rules={[
+                    {
+                      required: true,
+                      message: $i18n.get({ id: 'gi-site.pages.Workbook.Create.SelectATemplate', dm: '请选择模版!' }),
+                    },
+                  ]}
+                >
+                  <Select
+                    placeholder={$i18n.get({ id: 'gi-site.pages.Workbook.Create.SelectATemplate.1', dm: '请选择模版' })}
+                    options={templateOptions}
+                    onChange={handleChangeTemplate}
+                  ></Select>
+                </Form.Item>
+                <TemplateDesc {...template} />
+
+                <Form.Item>
+                  <Button type="primary" onClick={handleSubmit}>
+                    {$i18n.get({ id: 'gi-site.pages.Workbook.Create.Create', dm: '创建' })}
+                  </Button>
+                </Form.Item>
+              </Form>
+            ),
+          },
+          {
+            key: 'recover',
+            label: $i18n.get({ id: 'gi-site.pages.Workbook.Create.RestoreWorkbook', dm: '恢复工作簿' }),
+            children: <Recover onRecover={handleRecover} />,
+          },
+        ]}
+      />
+    </div>
+  );
+};
+
+export default Create;

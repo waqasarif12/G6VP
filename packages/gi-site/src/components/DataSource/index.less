@@ -1,0 +1,56 @@
+@line-height: 40px;
+.gi-page-container {
+  height: calc(100vh - 64px);
+  padding: 12px 48px 48px 48px;
+  overflow-y: scroll;
+  background: #fafafa;
+}
+.gi-services-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background: var(--background-color);
+}
+
+.gi-services-sidebar {
+  flex-basis: 400px;
+  width: 400px;
+  margin: 0px;
+  padding: 0px;
+  ul {
+    list-style: none;
+    padding-inline-start: 0px;
+  }
+  li {
+    height: @line-height;
+    padding: 0px 8px 0px 16px;
+    line-height: @line-height;
+    cursor: pointer;
+    .delete {
+      float: right;
+      padding-right: 8px;
+    }
+
+    &.active {
+      color: var(--primary-color);
+      background: var(--primary-color-opacity-1);
+      border-right: 3px solid var(--primary-color);
+    }
+    &.plus {
+      color: var(--primary-color);
+      text-align: center;
+      border: 1px dashed rgba(221, 221, 221, 0.794);
+    }
+  }
+}
+.gi-services-editor {
+  flex: 1;
+  .ant-input,
+  .react-monaco-editor-container {
+    margin: 12px 0;
+  }
+  .ant-radio-group-outline {
+    margin-bottom: 12px;
+    margin-left: 12px;
+  }
+}

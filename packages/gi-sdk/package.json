@@ -1,0 +1,56 @@
+{
+  "name": "@antv/gi-sdk",
+  "version": "2.4.23",
+  "description": "G6VP 核心画布渲染",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/G6VP.git"
+  },
+  "files": [
+    "es",
+    "lib",
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:es & npm run build:umd",
+    "build:es": "father build",
+    "build:umd": "webpack --mode production  -c ../../webpack.config.js --env path=/packages/gi-sdk",
+    "build:umd:analysis": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi analysis=true",
+    "clean": "rimraf es esm lib dist",
+    "prettier": "prettier --write ./src/**/**/**/*.js",
+    "start": "npm run clean && father build --watch",
+    "test": "jest",
+    "sync": "tnpm sync @antv/gi-sdk"
+  },
+  "dependencies": {
+    "@aligov/global-locale": "^1.0.5",
+    "@aligov/global-string-format": "^1.0.7",
+    "@ant-design/icons": "^4.7.0",
+    "@antv/gi-common-components": "workspace:*",
+    "immer": "^9.0.0",
+    "lodash-es": "^4.17.21",
+    "mousetrap": "^1.6.5",
+    "react-intl": "^6.4.4",
+    "size-sensor": "^1.0.1",
+    "use-immer": "^0.9.0"
+  },
+  "peerDependencies": {
+    "@antv/graphin": "^2.7.27",
+    "antd": "4.x",
+    "react": "17.x",
+    "react-dom": "17.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/mousetrap": "^1.6.11"
+  }
+}

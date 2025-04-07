@@ -1,0 +1,37 @@
+{
+  "name": "@antv/gi-portal",
+  "version": "1.0.0",
+  "description": "G6VP Portal",
+  "main": "dist/app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/G6VP.git"
+  },
+  "scripts": {
+    "start": " PORT=3000 umi dev",
+    "build": "umi build && node scripts/copy.js",
+    "analyse": "ANALYZE=1  umi build"
+  },
+  "sideEffects": [
+    "*.less",
+    "*.css"
+  ],
+  "peerDependencies": {
+    "react": "17.x",
+    "react-dom": "17.x"
+  },
+  "devDependencies": {
+    "@react-spring/types": "9.6.0"
+  },
+  "dependencies": {
+    "@aligov/global-locale": "^1.0.5",
+    "@aligov/global-string-format": "^1.0.7",
+    "react-spring": "9.6.0"
+  },
+  "author": "AntV",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": true
+}

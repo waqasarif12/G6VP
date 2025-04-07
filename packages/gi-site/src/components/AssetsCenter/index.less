@@ -1,0 +1,124 @@
+.gi-assets-center-handler {
+  align-items: center;
+  display: flex;
+  font-size: 18px;
+  height: 56px;
+  justify-content: space-between;
+  letter-spacing: -0.3px;
+  line-height: 56px;
+  padding: 0px 12px;
+}
+
+.assets-card {
+  &:hover {
+    box-shadow: var(--box-shadow-pannel);
+  }
+  border-radius: 8px !important;
+  cursor: pointer;
+  .ant-pro-checkcard-content {
+    height: 100%;
+    padding: 12px 8px;
+    .ant-pro-checkcard-detail {
+      // overflow:unset;
+      .ant-pro-checkcard-description {
+        color: var(--text-color);
+        height: 100%;
+        .asset-detail {
+          position: relative;
+          // display: flex;
+          flex-direction: column;
+          width: 224px;
+          // height: 98px;
+          ul {
+            margin: 0;
+            padding: 0;
+
+            font-size: 12px;
+            list-style: none;
+            li {
+              display: inline-block;
+              width: 100%;
+              padding: 2px 0;
+              overflow: hidden;
+              line-height: 16px;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              vertical-align: sub;
+              list-style: none;
+            }
+          }
+          .asset-detail-buttom {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 24px;
+            text-align: right;
+            .asset-favorite {
+              width: 24px;
+              height: 24px;
+              margin-left: 5px;
+              font-size: 12px;
+              line-height: 24px;
+              text-align: center;
+            }
+            .asset-detail-link {
+              width: 64px;
+              height: 24px;
+              margin-left: 5px;
+
+              font-size: 12px;
+              line-height: 24px;
+              text-align: center;
+              background-color: var(--background-color);
+              border-radius: 2px;
+              box-shadow: 1px -1px 4px 0 rgba(213, 213, 213, 0.5), -1px 1px 4px 0 rgba(213, 213, 213, 0.5);
+            }
+            .asset-add {
+              width: 40px;
+              height: 24px;
+              margin-left: 5px;
+              color: #fff;
+              font-size: 12px;
+              line-height: 24px;
+              text-align: center;
+              background-color: var(--primary-color);
+              border-radius: 2px;
+              box-shadow: 1px 2px 3px 0 #95acff;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.gi-assets-center-drawer {
+  .ant-tabs-tab {
+    font-size: 16px;
+  }
+  .gi-assets-center-pane-title {
+    display: inline-block;
+    width: 100px;
+    padding: 0px 18px;
+  }
+}
+
+.ant-pro-checkcard-checked {
+  box-shadow: 0px 0px 6px 0 var(--primary-color);
+}
+
+.ant-pro-checkcard-multiple.ant-pro-checkcard-checked::after {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border: 12px solid #3056e3;
+  border-bottom: 12px solid transparent;
+  border-left: 12px solid transparent;
+  border-top-right-radius: 8px;
+  content: '';
+}

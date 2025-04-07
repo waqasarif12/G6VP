@@ -1,0 +1,50 @@
+{
+  "name": "@antv/gi-assets-neo4j",
+  "version": "2.1.15",
+  "description": "Neo4j 资产包",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "files": [
+    "dist",
+    "lib",
+    "es"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:es & npm run build:umd",
+    "build:es": "father build",
+    "build:umd": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi-assets-neo4j",
+    "clean": "rimraf es esm lib dist",
+    "demo": "umi dev",
+    "demo:build": "umi build",
+    "docs": "dumi dev",
+    "prettier": "prettier --write ./src/**/**/**/*.js",
+    "remove:antd": "rm -rf ./node_modules/antd",
+    "start": "father build --watch",
+    "test": "jest",
+    "sync": "tnpm sync @antv/gi-assets-neo4j"
+  },
+  "dependencies": {
+    "@aligov/global-locale": "^1.0.5",
+    "@aligov/global-string-format": "^1.0.7",
+    "@ant-design/icons": "^4.7.0",
+    "@antv/gi-sdk": "workspace:*",
+    "json2csv": "^5.0.7",
+    "neo4j-driver": "^5.8.0",
+    "umi-request": "^1.4.0",
+    "use-immer": "^0.9.0"
+  },
+  "peerDependencies": {
+    "@antv/graphin": "^2.7.27",
+    "antd": "4.x",
+    "react": "17.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "git@github.com:antvis/G6VP.git"
+}

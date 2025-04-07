@@ -1,0 +1,171 @@
+import React, { useCallback } from 'react';
+import { Row, Col, Select, Input, Form } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import Util from '../utils';
+import { SPLITOR } from './registerMeta';
+import { useEffect } from 'react';
+import './index.less';
+import $i18n from '../i18n';
+
+const { Option } = Select;
+const { debounce } = Util;
+
+interface Props {
+  color?: string;
+  pid: string;
+  properties: string[];
+  visible: boolean;
+  form: any;
+  disabled: boolean;
+  configColor?: boolean;
+  deleteItem: (pid: string) => void;
+  openColorPanel?: (e: any, pid: string) => void;
+  emitPropertyConfigChange?: (values: object) => void;
+}
+
+const StyleConfigPropertyItem: React.FC<Props> = ({
+  color,
+  pid,
+  properties,
+  visible,
+  form,
+  disabled,
+  configColor = true,
+  deleteItem,
+  openColorPanel = () => {},
+  emitPropertyConfigChange = () => {},
+}) => {
+  const operators = ['>', '>=', '<=', '<', '=', '!=', 'like', 'unlike'];
+
+  const onFromChange = () => {
+    const fieldValues = form.getFieldsValue();
+
+    const validValues = Object.keys(fieldValues).filter(key => {
+      const value = fieldValues?.[key];
+      return key.split(SPLITOR)?.[0] === pid.split(SPLITOR)?.[0] && !!value;
+    });
+    if (validValues?.length >= 3) {
+      emitPropertyConfigChange(fieldValues);
+    }
+  };
+
+  const debounceChange = useCallback(debounce(onFromChange, 500), []);
+
+  useEffect(() => {
+    form.setFieldsValue({
+      [`${pid}${SPLITOR}color`]: color,
+    });
+  }, []);
+
+  return properties && visible ? (
+    <Row className="kg-style-config-property-item" key={pid} style={configColor ? {} : { width: '100%' }}>
+      <Col span={8}>
+        <Form.Item
+          rules={[
+            {
+              required: true,
+              message: $i18n.get({
+                id: 'gi-assets-algorithm.src.PatternMatch.StyleConfigPropertyItem.CannotBeEmpty',
+                dm: '不可为空',
+              }),
+            },
+          ]}
+          name={`${pid}${SPLITOR}name`}
+        >
+          <Select
+            className="kg-style-config-property-select"
+            size="small"
+            placeholder={$i18n.get({
+              id: 'gi-assets-algorithm.src.PatternMatch.StyleConfigPropertyItem.SelectProperties',
+              dm: '选择属性',
+            })}
+            onChange={onFromChange}
+            disabled={disabled}
+          >
+            {properties.map(pKey => (
+              <Option value={pKey} key={pKey}>
+                {pKey}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Col>
+      <Col span={configColor ? 5 : 6} offset={1}>
+        <Form.Item
+          rules={[
+            {
+              required: true,
+              message: $i18n.get({
+                id: 'gi-assets-algorithm.src.PatternMatch.StyleConfigPropertyItem.CannotBeEmpty',
+                dm: '不可为空',
+              }),
+            },
+          ]}
+          name={`${pid}${SPLITOR}operator`}
+        >
+          <Select
+            className="kg-style-config-property-select"
+            size="small"
+            onChange={onFromChange}
+            dropdownMatchSelectWidth={false}
+            disabled={disabled}
+          >
+            {operators.map(operator => (
+              <Option value={operator} key={operator}>
+                {operator}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Col>
+      <Col span={configColor ? 5 : 6} offset={1}>
+        <Form.Item
+          rules={[
+            {
+              required: true,
+              message: $i18n.get({
+                id: 'gi-assets-algorithm.src.PatternMatch.StyleConfigPropertyItem.CannotBeEmpty',
+                dm: '不可为空',
+              }),
+            },
+          ]}
+          name={`${pid}${SPLITOR}value`}
+        >
+          <Input
+            style={{ width: '100%', height: '24px' }}
+            placeholder={$i18n.get({
+              id: 'gi-assets-algorithm.src.PatternMatch.StyleConfigPropertyItem.EnterAttributeValues',
+              dm: '输入属性值',
+            })}
+            onChange={debounceChange}
+            disabled={disabled}
+          />
+        </Form.Item>
+      </Col>
+      {configColor && (
+        <Col span={2} offset={1}>
+          {color ? (
+            <div
+              className="kg-style-config-property-item-color"
+              style={{ backgroundColor: color }}
+              onClick={e => (!disabled ? openColorPanel?.(e, pid) : {})}
+            ></div>
+          ) : (
+            <i
+              className="icon-ic_opacity iconfont kg-style-config-property-item-no-color"
+              onClick={e => openColorPanel(e, pid)}
+            />
+          )}
+        </Col>
+      )}
+
+      <Col span={1} offset={configColor ? 0 : 1}>
+        <DeleteOutlined onClick={() => deleteItem(pid)} />
+      </Col>
+    </Row>
+  ) : (
+    <div key={pid}></div>
+  );
+};
+
+export default StyleConfigPropertyItem;

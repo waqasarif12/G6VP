@@ -1,0 +1,62 @@
+ul.gi-sidebar {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+
+  li.sidebar-logo {
+    padding: 15px 10px;
+    img {
+      width: 100%;
+    }
+  }
+}
+
+.sidebar-item {
+  width: 100%;
+  height: 54px;
+  padding: 6px 0px;
+  cursor: pointer;
+
+  &.active {
+    color: var(--primary-color);
+    &::before {
+      position: absolute;
+      display: block;
+      float: left;
+      width: 3px;
+      height: 37px;
+      margin-top: 8px;
+      background: var(--primary-color);
+      border-radius: 0 100px 100px 0;
+      content: '';
+    }
+  }
+  &.assets-center {
+    position: absolute;
+    bottom: 16px;
+    left: 0px;
+    z-index: 10;
+    width: 50px;
+  }
+  .icon {
+    display: block;
+    width: unset;
+    height: unset;
+    margin-top: 5px;
+    margin-right: unset;
+    margin-bottom: 0px;
+    font-size: 16px;
+    text-align: center;
+  }
+  .name {
+    display: block;
+    margin-right: unset;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: PingFangSC-Medium;
+    line-height: unset;
+    white-space: nowrap;
+    text-align: center;
+  }
+}

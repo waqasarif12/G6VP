@@ -1,0 +1,45 @@
+{
+  "name": "@antv/gi-assets-testing",
+  "version": "1.0.0-beta.0",
+  "description": "G6VP 资产测试包",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "files": [
+    "dist",
+    "lib",
+    "es"
+  ],
+  "scripts": {
+    "remove:antd": "rm -rf ./node_modules/antd",
+    "start": "npm run clean && father build --watch",
+    "build": "NODE_OPTIONS=--max_old_space_size=2048 npm run clean && father build",
+    "test": "jest",
+    "prettier": "prettier --write ./src/**/**/**/*.js",
+    "clean": "rimraf es esm lib dist"
+  },
+  "dependencies": {
+    "@antv/gi-sdk": "workspace:*",
+    "@antv/gi-assets-basic": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "17.x",
+    "react-dom": "17.x",
+    "antd": "4.x",
+    "@antv/graphin": "^2.7.27"
+  },
+  "devDependencies": {
+    "@types/react": "^17.x",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": true
+}

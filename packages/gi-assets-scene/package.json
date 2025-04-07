@@ -1,0 +1,65 @@
+{
+  "name": "@antv/gi-assets-scene",
+  "version": "2.2.21",
+  "description": "G6VP 基础模版包",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/G6VP.git"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "files": [
+    "dist",
+    "lib",
+    "es"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:es & npm run build:umd",
+    "build:es": "father build",
+    "build:umd": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi-assets-scene",
+    "clean": "rimraf es esm lib dist",
+    "docs": "dumi dev",
+    "prettier": "prettier --write ./src/**/**/**/*.js",
+    "start": "npm run clean && father build --watch",
+    "test": "jest",
+    "build:umd:analysis": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi-assets-scene analysis=true",
+    "sync": "tnpm sync @antv/gi-assets-scene"
+  },
+  "dependencies": {
+    "3d-force-graph": "1.70.10",
+    "@aligov/global-locale": "^1.0.5",
+    "@aligov/global-string-format": "^1.0.7",
+    "@ant-design/icons": "^4.7.0",
+    "@antv/g2": "^5.0.11",
+    "@antv/gi-sdk": "workspace:*",
+    "@antv/l7-draw": "^2.4.24",
+    "@antv/l7plot": "^0.0.11",
+    "@turf/turf": "^6.5.0",
+    "ahooks": "^3.7.7",
+    "dayjs": "^1.10.5",
+    "graph-timeline": "^1.1.7",
+    "lodash-es": "^4.17.21",
+    "react-spring": "9.6.0",
+    "three": "0.139.2"
+  },
+  "devDependencies": {
+    "mini-css-extract-plugin": "^2.7.6",
+    "rimraf": "^3.0.2",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@antv/graphin": "^2.7.27",
+    "antd": "4.x",
+    "react": "17.x",
+    "react-dom": "17.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

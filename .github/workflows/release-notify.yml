@@ -1,0 +1,25 @@
+name: 🎉 Release Notify
+
+on:
+  release:
+    # published: latest release 和 pre release 都会触发
+    # prereleased: 只有 pre release 触发
+    # released: 只有 latest release 触发
+    types: [released]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Latest Release Notify
+        uses: visiky/dingtalk-release-notify@main
+        with:
+          DING_TALK_TOKEN: |
+            ${{ secrets.DING_TALK_ACCESS_TOKEN }}
+            ${{ secrets.DING_TALK_GROUP_TOKEN }}
+            ${{ secrets.DING_TALK_PUBLIC_TOKEN }}
+          notify_title: '🎉 新版本发布 🎉'
+          notify_body: '## { title } <hr /> ![preview](https://gw.alipayobjects.com/mdn/rms_0d75e8/afts/img/A*wnCMQpZDfAQAAAAAAAAAAAAAARQnAQ) <hr /> 看看有哪些更新吧 <hr />'
+          notify_footer: '> 前往 [**AntV/S2 Releases**](https://github.com/antvis/G6VP/releases/latest) 查看完整信息.'
+          at_all: false
+          enable_prerelease: false

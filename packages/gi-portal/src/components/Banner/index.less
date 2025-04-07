@@ -1,0 +1,80 @@
+@role-height: 500px;
+@shadow:0 2px 2px 0 #00000024, 0 3px 1px -2px #0000001f, 0 1px 5px 0 #00000033;
+
+.gi-banner {
+  display: flex;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  justify-content: space-between;
+  justify-items: center;
+  padding: 24px;
+
+  .title {
+    display: flex;
+    flex-direction: column;
+    min-width: 294px;
+    margin-top: 4rem;
+
+    margin-right: 3rem;
+    h1 {
+      margin: 0px;
+      color: #232323;
+      font-weight: 300;
+      font-size: 3rem;
+      font-smooth: antialiased;
+      letter-spacing: 0;
+    }
+    h3 {
+      color: #232323;
+      font-weight: 200;
+      font-size: 1.3rem;
+      line-height: 1.7;
+    }
+    .btn-group {
+      display: flex;
+      align-items: center;
+      margin-top: 24px;
+    }
+    .button {
+      &.disabled {
+        color: #00000040;
+        text-shadow: none;
+        background: #f5f5f5;
+        border-color: #d9d9d9;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+      &.github {
+        width: 100px;
+        color: #000;
+        background: #fafafa;
+        border: 1px solid #fafafa;
+
+        box-shadow: none;
+      }
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 136px;
+      height: 36px;
+      margin: 0px 4px;
+      color: #fff;
+      line-height: 36px;
+      text-align: center;
+      text-decoration: none;
+      background: linear-gradient(60deg, #3056e3, #3056e3cc);
+      border: none;
+      border-radius: 4px;
+      outline: none;
+      box-shadow: @shadow;
+      cursor: pointer;
+    }
+  }
+  img {
+    width: @role-height;
+    height: @role-height;
+    padding-left: 2rem;
+  }
+}

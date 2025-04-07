@@ -1,0 +1,80 @@
+.gi-grail-layout {
+  position: absolute;
+  z-index: 100;
+  display: flex;
+  box-sizing: border-box;
+  border: var(--border-color);
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
+.gi-grail-layout-left {
+  background: var(--background-color);
+  border-right: 1px solid var(--border-color);
+  color: var(--text-color);
+  top: 0;
+  left: 0;
+  flex-direction: column;
+  height: 100%;
+  overflow-x: visible;
+  transition: all 0.2s ease;
+  border-radius: 0 8px 8px 0;
+}
+
+.gi-grail-layout-right {
+  background: var(--background-color);
+  border-left: 1px solid var(--border-color);
+  color: var(--text-color);
+  top: 0;
+  right: 0;
+  flex-direction: column;
+  height: 100%;
+  overflow-x: visible;
+  transition: all 0.2s ease;
+  border-radius: 8px 0 0 8px;
+}
+
+.gi-grail-layout-bottom {
+  background: var(--background-color);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-color);
+  bottom: 0;
+  flex-direction: row;
+  overflow-y: visible;
+  border-right: none;
+  border-left: none;
+  transition: all 0.2s ease;
+  border-radius: 8px 8px 0 0;
+}
+
+.gi-grail-layout-top {
+  background: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  top: 0;
+  flex-direction: row;
+  overflow-y: visible;
+  border-right: none;
+  border-left: none;
+  transition: all 0.2s ease;
+  border-radius: 0 0 8px 8px;
+}
+
+.gi-grail-layout-component-container {
+  width: 100%;
+  margin-top: 10px;
+  overflow: auto;
+  box-shadow: 0px 0px 4px 0 rgba(0, 0, 0, 0.1);
+  header {
+    box-sizing: border-box;
+    height: 35px;
+    padding: 4px 12px;
+    font-weight: bold;
+    font-size: 16px;
+    border-left: 3px solid var(--primary-color);
+  }
+  .gi-grail-layout-component-body {
+    width: 100%;
+    height: calc(100% - 35px);
+  }
+}

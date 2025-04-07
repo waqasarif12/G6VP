@@ -1,0 +1,442 @@
+import { DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { useContext, utils } from '@antv/gi-sdk';
+import GremlinEditor from 'ace-gremlin-editor';
+import { Button, Col, Drawer, Form, Input, message, Modal, Popconfirm, Row, Select, Table, Tooltip } from 'antd';
+import React from 'react';
+import { useImmer } from 'use-immer';
+import './index.less';
+import $i18n from '../../i18n';
+
+const { Option } = Select;
+
+export interface IProps {
+  value: string;
+  visible: boolean;
+  close: () => void;
+  fileType: 'GREMLIN' | 'GQL' | 'ISOGQL' | 'CYPHER' | 'UNKNOWN';
+  saveTemplateServceId: string;
+}
+
+const layout = {
+  labelCol: { span: 6 },
+  wrapperCol: { span: 18 },
+};
+
+const TemplateParam: React.FC<IProps> = ({ fileType, value, visible, close, saveTemplateServceId }) => {
+  const [form] = Form.useForm();
+  const { services } = useContext();
+
+  // 没有选择
+  if (!saveTemplateServceId) {
+    message.error(
+      $i18n.get({ id: 'advance.components.PublishTemplate.SelectAServiceToPublish', dm: '请选择发布成模板的服务' }),
+    );
+    return null;
+  }
+
+  const saveTemplateService = utils.getService(services, saveTemplateServceId);
+
+  const [state, setState] = useImmer<{
+    initValue: string;
+    defaultFormValue: {
+      parameterName: string;
+      valueType: string;
+      parameterValue: string;
+    };
+    paramsList: any[];
+    selectValue: string;
+    modalVisible: boolean;
+    temDescription: string;
+    btnLoading: boolean;
+  }>({
+    initValue: value,
+    defaultFormValue: {
+      parameterName: '',
+      valueType: 'string',
+      parameterValue: '',
+    },
+    paramsList: [],
+    selectValue: '',
+    modalVisible: false,
+    btnLoading: false,
+    temDescription: '',
+  });
+
+  const { initValue, defaultFormValue, paramsList, selectValue, modalVisible, temDescription, btnLoading } = state;
+
+  const handleValueSelectChange = (currentValue: string) => {
+    setState(draft => {
+      draft.selectValue = currentValue;
+    });
+  };
+
+  // 点击参数化按钮，对选择的部分进行参数化
+  const showParamsModal = () => {
+    setState(draft => {
+      draft.modalVisible = true;
+    });
+    form.setFieldsValue({
+      parameterName: '',
+      valueType: 'string',
+      parameterValue: selectValue.replace(/(\"|\')/g, ''),
+    });
+  };
+
+  const handleChangeDescription = evt => {
+    setState(draft => {
+      draft.temDescription = evt.target.value;
+    });
+  };
+
+  const handleParams = async () => {
+    const values = await form.validateFields();
+    const currents = [...paramsList];
+
+    // 检查参数化的参数名称是否已经存在，如果存在则覆盖并给出提示信息
+    const hasParams = currents.find((t: any) => t.parameterName === values.parameterName);
+    if (hasParams) {
+      message.info(
+        $i18n.get({
+          id: 'advance.components.PublishTemplate.ParameterizeExistingParametersAndOverwrite',
+          dm: '参数化已经存在的参数，会覆盖已有的参数',
+        }),
+      );
+    }
+
+    const resultParams = currents.filter((t: any) => t.parameterName !== values.parameterName);
+
+    resultParams.push(values);
+
+    // 替换 Gremlin 语句
+    try {
+      const reg = new RegExp(`${selectValue}`);
+      const templateStr = initValue
+        .replace(reg, `{{${values.parameterName}}}`)
+        .replace(/(\"|\')(?=\{\{)/, '')
+        // .replace(/(?<=\}\})(\"|\')/, ''); // https://stackoverflow.com/questions/51568821/works-in-chrome-but-breaks-in-safari-invalid-regular-expression-invalid-group?noredirect=1&lq=1
+        .replace(/(?:\}\})(\"|\')/, '');
+
+      setState(draft => {
+        draft.paramsList = [...resultParams];
+        draft.initValue = templateStr;
+        draft.modalVisible = false;
+        draft.defaultFormValue = {
+          parameterName: '',
+          valueType: 'string',
+          parameterValue: '',
+        };
+      });
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+  const publishTemplate = async () => {
+    const values = await form.validateFields();
+    if (!values.templateName) {
+      message.error(
+        $i18n.get({ id: 'advance.components.PublishTemplate.TheTemplateNameIsEmpty', dm: '模板名称为空或格式不正确!' }),
+      );
+      return;
+    }
+
+    setState(draft => {
+      draft.btnLoading = true;
+    });
+    if (!saveTemplateService) {
+      return;
+    }
+    const result = await saveTemplateService({
+      graphLanguageType: fileType,
+      queryTemplate: initValue,
+      templateName: values.templateName,
+      description: temDescription,
+      templateParameterList: paramsList,
+    });
+
+    setState(draft => {
+      draft.btnLoading = false;
+    });
+
+    if (!result) {
+      return;
+    }
+
+    message.success(
+      $i18n.get({ id: 'advance.components.PublishTemplate.TemplatePublishedSuccessfully', dm: '发布模板成功' }),
+    );
+    close();
+  };
+
+  const handleDelete = record => {
+    const filterList = paramsList.filter(
+      d => d.parameterName !== record.parameterName && d.parameterValue !== record.parameterValue,
+    );
+    setState(draft => {
+      draft.paramsList = filterList;
+    });
+  };
+
+  const tableColumns = [
+    {
+      title: $i18n.get({ id: 'advance.components.PublishTemplate.ParameterName', dm: '参数名称' }),
+      dataIndex: 'parameterName',
+      key: 'parameterName',
+    },
+    {
+      title: $i18n.get({ id: 'advance.components.PublishTemplate.Type', dm: '类型' }),
+      dataIndex: 'valueType',
+      key: 'valueType',
+    },
+    {
+      title: $i18n.get({ id: 'advance.components.PublishTemplate.ReplacementValue', dm: '替换值' }),
+      dataIndex: 'parameterValue',
+      key: 'parameterValue',
+    },
+    {
+      title: $i18n.get({ id: 'advance.components.PublishTemplate.Operation', dm: '操作' }),
+      key: 'action',
+      render: (text, record) => (
+        <Popconfirm
+          title={$i18n.get({ id: 'advance.components.PublishTemplate.AreYouSureYouWant', dm: '确定删除？' })}
+          onConfirm={() => handleDelete(record)}
+          okText={$i18n.get({ id: 'advance.components.PublishTemplate.Ok', dm: '确定' })}
+          cancelText={$i18n.get({ id: 'advance.components.PublishTemplate.Cancel', dm: '取消' })}
+        >
+          <a>
+            <DeleteOutlined />
+          </a>
+        </Popconfirm>
+      ),
+    },
+  ];
+
+  const replaceFun = match => {
+    return `<span style='opacity: 0.2'>${match}</span>`;
+  };
+
+  const createMarkup = () => {
+    return {
+      __html: initValue.trim().replace(/(\{\{)\w+(\}\})/g, replaceFun),
+    };
+  };
+
+  return (
+    <Drawer
+      title={$i18n.get({ id: 'advance.components.PublishTemplate.PublishAsATemplate', dm: '发布成模板' })}
+      visible={visible}
+      width={700}
+      onClose={close}
+      footer={
+        <div
+          style={{
+            textAlign: 'right',
+          }}
+        >
+          <Button
+            onClick={close}
+            style={{
+              marginRight: 8,
+            }}
+          >
+            {$i18n.get({ id: 'advance.components.PublishTemplate.Cancel', dm: '取消' })}
+          </Button>
+          <Button type="primary" onClick={publishTemplate} loading={btnLoading}>
+            {$i18n.get({ id: 'advance.components.PublishTemplate.Publish', dm: '发布' })}
+          </Button>
+        </div>
+      }
+    >
+      <Row className="templateParamContainer">
+        <Col
+          span={24}
+          className="title"
+          style={{
+            marginBottom: -8,
+          }}
+        >
+          <Form name="templateNames" form={form}>
+            <Form.Item
+              label={$i18n.get({ id: 'advance.components.PublishTemplate.TemplateName', dm: '模板名称' })}
+              name="templateName"
+              tooltip={{
+                title: $i18n.get({
+                  id: 'advance.components.PublishTemplate.TheTemplateNameCanOnly',
+                  dm: '模板名称只能包含字母、数字或下划线，且只能以字母开头',
+                }),
+                icon: <InfoCircleOutlined />,
+              }}
+            >
+              <Input
+                size="small"
+                style={{
+                  width: 350,
+                  border: '1px solid #434343',
+                  marginLeft: 16,
+                }}
+              />
+            </Form.Item>
+          </Form>
+        </Col>
+        <Col
+          span={16}
+          className="title"
+          style={{
+            marginTop: 0,
+          }}
+        >
+          {$i18n.get({ id: 'advance.components.PublishTemplate.OriginalStatement', dm: '原始语句' })}
+
+          <span className="description">
+            {$i18n.get({
+              id: 'advance.components.PublishTemplate.SelectTheContentToBe',
+              dm: '请选择要参数化的内容，然后点击右边的参数化按钮进行下一步的操作',
+            })}
+          </span>
+        </Col>
+        <Col
+          span={8}
+          style={{
+            textAlign: 'right',
+            marginTop: 20,
+          }}
+        >
+          <Tooltip
+            title={$i18n.get(
+              {
+                id: 'advance.components.PublishTemplate.SelectTheParameterValueIn',
+                dm: '选择 {fileType} 中的参数值后进行参数化操作',
+              },
+              { fileType: fileType },
+            )}
+          >
+            <Button size="small" onClick={showParamsModal} disabled={!selectValue}>
+              {$i18n.get({ id: 'advance.components.PublishTemplate.Parameterized', dm: '参数化' })}
+            </Button>
+          </Tooltip>
+        </Col>
+        <Col
+          span={24}
+          style={{
+            border: '1px solid #d9d9d9',
+          }}
+        >
+          <GremlinEditor
+            initialValue={initValue}
+            height={150}
+            isReadOnly={true}
+            onSelectChange={handleValueSelectChange}
+          />
+        </Col>
+        <Col span={24} className="title">
+          {$i18n.get({ id: 'advance.components.PublishTemplate.TemplateStatement', dm: '模板语句' })}
+
+          <pre className="tpre" dangerouslySetInnerHTML={createMarkup()}></pre>
+        </Col>
+        <Col span={24} className="title">
+          {$i18n.get({ id: 'advance.components.PublishTemplate.ParameterList', dm: '参数列表' })}
+        </Col>
+        <Col span={24}>
+          <Table
+            columns={tableColumns}
+            dataSource={paramsList}
+            pagination={{
+              hideOnSinglePage: true,
+              size: 'small',
+            }}
+          />
+        </Col>
+        <Col span={24} className="title">
+          {$i18n.get({ id: 'advance.components.PublishTemplate.TemplateDescription', dm: '模板描述' })}
+        </Col>
+        <Col span={24}>
+          <Input.TextArea
+            rows={3}
+            onChange={handleChangeDescription}
+            style={{
+              border: '1px solid #434343',
+            }}
+          />
+        </Col>
+      </Row>
+      <Modal
+        title={$i18n.get(
+          {
+            id: 'advance.components.PublishTemplate.FiletypeParameterized',
+            dm: '{fileType} 参数化',
+          },
+          { fileType: fileType },
+        )}
+        visible={modalVisible}
+        onOk={handleParams}
+        width={350}
+        okText={$i18n.get({ id: 'advance.components.PublishTemplate.Ok', dm: '确定' })}
+        cancelText={$i18n.get({ id: 'advance.components.PublishTemplate.Cancel', dm: '取消' })}
+        onCancel={() => {
+          setState(draft => {
+            draft.modalVisible = false;
+          });
+        }}
+        bodyStyle={{
+          padding: '8px 24px',
+        }}
+      >
+        <Form {...layout} name="templateParams" form={form} initialValues={defaultFormValue}>
+          <Form.Item
+            label={$i18n.get({ id: 'advance.components.PublishTemplate.ParameterName', dm: '参数名称' })}
+            name="parameterName"
+            rules={[
+              {
+                required: true,
+                message: $i18n.get({
+                  id: 'advance.components.PublishTemplate.EnterTheNameOfThe',
+                  dm: '请输入参数的名称!',
+                }),
+              },
+            ]}
+            style={{
+              marginBottom: 16,
+            }}
+          >
+            <Input size="small" />
+          </Form.Item>
+
+          <Form.Item
+            label={$i18n.get({ id: 'advance.components.PublishTemplate.ParameterType', dm: '参数类型' })}
+            name="valueType"
+            rules={[
+              {
+                required: true,
+                message: $i18n.get({
+                  id: 'advance.components.PublishTemplate.SelectAParameterType',
+                  dm: '请选择参数类型!',
+                }),
+              },
+            ]}
+            style={{
+              marginBottom: 16,
+            }}
+          >
+            <Select size="small">
+              <Option value="string">string</Option>
+              <Option value="long">long</Option>
+              <Option value="double">double</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="parameterValue"
+            label={$i18n.get({ id: 'advance.components.PublishTemplate.ReplacementValue', dm: '替换值' })}
+            style={{
+              marginBottom: 0,
+            }}
+          >
+            <Input size="small" disabled />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Drawer>
+  );
+};
+
+export default TemplateParam;

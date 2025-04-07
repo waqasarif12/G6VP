@@ -1,0 +1,170 @@
+import React from 'react';
+import { debounce as _debounce } from '@antv/util';
+import GroupContainer from '../GroupContainer';
+import RenderForm from './FormilyRenderForm';
+import type { ItemConfig } from './typing';
+
+const debounce = fn => _debounce(fn, 500, false) as any;
+
+export interface StyleSettingProps {
+  data: { nodes: any[]; edges: any[] };
+  elementType: 'nodes' | 'edges';
+  onChange: (params: any) => void;
+  /** GI ELEMENTS ASSETS META */
+  elements: {
+    [key: string]: {
+      id: string;
+      meta: Record<string, any>;
+      [key: string]: any;
+    };
+  };
+  /** GI CONFIG */
+  config: {
+    nodes: ItemConfig[];
+    edges: ItemConfig[];
+    [key: string]: any;
+  };
+  schemaData: any;
+}
+
+const defaultGroupOption = {
+  nodes: {
+    id: 'SimpleNode',
+    logic: true,
+    expressions: [
+      {
+        name: 'id',
+        operator: 'eql',
+        value: '',
+      },
+    ],
+    props: {
+      color: '#ddd',
+      size: 26,
+      label: [],
+    },
+  },
+  edges: {
+    id: 'SimpleEdge',
+    logic: true,
+    expressions: [
+      {
+        name: 'id',
+        operator: 'eql',
+        value: '',
+      },
+    ],
+    props: {
+      color: '#ddd',
+      size: 1,
+      label: ['source', 'target'],
+    },
+  },
+};
+
+const CommonStyleSetting: React.FunctionComponent<StyleSettingProps> = ({
+  data,
+  elementType,
+  onChange,
+  elements,
+  config: CONFIG,
+  schemaData,
+}) => {
+  const elementConfig = JSON.parse(JSON.stringify(CONFIG[elementType] || {}));
+  const preStyleGroup = React.useRef(elementConfig as any);
+
+  const defaultItemConfig = {
+    nodes: { id: 'SimpleNode', props: {} },
+    edges: { id: 'SimpleEdge', props: {} },
+  };
+
+  /**
+   * change id / props
+   * @param current
+   * @param all
+   */
+  const handleChange = debounce((all, groupIndex = 0, elementId) => {
+    if (preStyleGroup.current[groupIndex]) {
+      preStyleGroup.current[groupIndex].props = all;
+      preStyleGroup.current[groupIndex].id = elementId;
+    } else {
+      // 不设置分组规则
+      preStyleGroup.current[groupIndex] = {
+        props: all,
+        groupName: `样式配置分组${groupIndex + 1}`,
+        groupId: 'default-group',
+        id: elementId,
+        expressions: [],
+        rules: 'and',
+      };
+    }
+
+    if (onChange) {
+      onChange(preStyleGroup.current);
+    }
+  });
+
+  /**
+   * change rules / expression / groupIndex /groupName
+   * @param _current
+   * @param all
+   */
+  const handleGroupChange = debounce((_current, all) => {
+    const resultGroup: ItemConfig[] = [];
+    for (const group of all.groups) {
+      // 从 preStyleGroup 中过滤出相同 ID 的对象，进行 merge
+      const currentGroup = preStyleGroup.current?.find((pg: any) => pg.groupId === group.groupId);
+      if (currentGroup) {
+        // 进行 merge
+        const result = Object.assign({}, currentGroup, group);
+        result.props = {
+          ...currentGroup.props,
+        };
+        resultGroup.push(result);
+      } else {
+        resultGroup.push(group);
+      }
+    }
+    preStyleGroup.current = resultGroup;
+
+    if (onChange) {
+      onChange(preStyleGroup.current);
+    }
+  });
+
+  return (
+    <GroupContainer
+      elementType={elementType}
+      schemaData={schemaData}
+      //@ts-ignore
+      defaultGroupOption={defaultGroupOption[elementType]}
+      initValues={{ groups: elementConfig }}
+      data={data[elementType]}
+      valuesChange={handleGroupChange}
+    >
+      {groupIndex => {
+        const itemConfig = elementConfig[groupIndex] || defaultItemConfig[elementType];
+        return (
+          <div>
+            <RenderForm
+              elementType={elementType}
+              schemaData={schemaData}
+              elements={elements}
+              config={itemConfig}
+              onChange={(all, elementId) => handleChange(all, groupIndex, elementId)}
+            />
+          </div>
+        );
+      }}
+    </GroupContainer>
+  );
+};
+
+export default CommonStyleSetting;
+
+// export default React.memo(CommonStyleSetting, (preProps, nextProps) => {
+//   /** 只要元素资产变换的时候，才去重绘 */
+//   const preElementKeys = Object.keys(preProps.elements).join('_');
+//   const nextElementKeys = Object.keys(nextProps.elements).join('_');
+//   return preElementKeys === nextElementKeys;
+// });

@@ -1,0 +1,139 @@
+import { EllipsisOutlined } from '@ant-design/icons';
+import { utils } from '@antv/gi-sdk';
+import { Button, Col, Dropdown, Empty, Menu, message, Popconfirm, Row, Typography } from 'antd';
+import * as React from 'react';
+import { useHistory } from 'react-router-dom';
+import { useImmer } from 'use-immer';
+import ProjectCard from '../../components/ProjectCard';
+import { GI_SITE } from '../../services/const';
+import * as ProjectServices from '../../services/project';
+import { deleteShareById, queryShareList } from '../../services/share';
+import type { IProject } from '../../services/typing';
+import $i18n from '../../i18n';
+
+interface SaveListState {
+  lists: IProject[];
+  visible: boolean;
+}
+
+interface SaveListProps {
+  onCreate?: () => void;
+  type: 'project' | 'case' | 'save';
+}
+
+const SaveList: React.FunctionComponent<SaveListProps> = props => {
+  const { type } = props;
+  const history = useHistory();
+  const [state, updateState] = useImmer<SaveListState>({
+    lists: [],
+    visible: false,
+  });
+
+  React.useEffect(() => {
+    (async () => {
+      let lists = [];
+      if (GI_SITE.IS_OFFLINE) {
+        //@ts-ignore
+        lists = await ProjectServices.list(type);
+      } else {
+        lists = await queryShareList();
+      }
+      updateState(draft => {
+        draft.lists = lists;
+      });
+    })();
+  }, []);
+
+  const { lists } = state;
+
+  const confirm = async id => {
+    if (GI_SITE.IS_OFFLINE) {
+      const items = lists.filter(d => d.id !== id);
+      updateState(draft => {
+        draft.lists = items;
+      });
+      ProjectServices.removeById(id);
+    } else {
+      const result = await deleteShareById(id);
+      if (result) {
+        message.success($i18n.get({ id: 'gi-site.pages.Workspace.SaveList.DeletedSuccessfully', dm: '删除成功' }));
+        // 重新加载列表
+        const list = await queryShareList();
+        updateState(draft => {
+          draft.lists = list;
+        });
+      }
+    }
+  };
+
+  const menu = id => (
+    <Menu>
+      <Menu.Item>
+        <Popconfirm
+          title={$i18n.get({ id: 'gi-site.pages.Workspace.SaveList.DeleteTheCanvas', dm: '是否删除该画布?' })}
+          onConfirm={e => {
+            //@ts-ignore
+            e.preventDefault();
+            confirm(id);
+          }}
+          okText="Yes"
+          cancelText="No"
+        >
+          {$i18n.get({ id: 'gi-site.pages.Workspace.SaveList.DeleteCanvas', dm: '删除画布' })}
+        </Popconfirm>
+      </Menu.Item>
+    </Menu>
+  );
+
+  if (lists.length === 0) {
+    return (
+      <div style={{ margin: '50px auto' }}>
+        <Empty
+          description={
+            <div>
+              {$i18n.get({ id: 'gi-site.pages.Workspace.SaveList.WhenUsersUseItIn', dm: '当用户在工作台中使用' })}
+              <Typography.Text type="success">
+                {$i18n.get({ id: 'gi-site.pages.Workspace.SaveList.SaveAnalysis', dm: '「保存分析」' })}
+              </Typography.Text>
+              {$i18n.get({
+                id: 'gi-site.pages.Workspace.SaveList.AssetsAreSavedHereBy',
+                dm: '资产的时候，默认会被保存在这里。',
+              })}
+            </div>
+          }
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Row gutter={[16, 16]} style={{ paddingRight: '24px' }}>
+        {lists.map(item => {
+          const { id, name, cover, gmtCreate, description } = item;
+
+          return (
+            <Col key={id} xs={24} sm={24} md={12} lg={8} xl={6}>
+              <ProjectCard
+                onClick={() => {
+                  history.push(`/share/${id}`);
+                }}
+                cover={<img src={cover} style={{ width: '70px', height: '70px' }} />}
+                title={name || ''}
+                time={utils.time(gmtCreate)}
+                extra={
+                  <Dropdown overlay={menu(id)} placement="bottomCenter">
+                    <Button type="text" icon={<EllipsisOutlined className="more icon-buuton" />}></Button>
+                  </Dropdown>
+                }
+                description={description}
+              ></ProjectCard>
+            </Col>
+          );
+        })}
+      </Row>
+    </>
+  );
+};
+
+export default SaveList;

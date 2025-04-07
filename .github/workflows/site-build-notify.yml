@@ -1,0 +1,23 @@
+name: 🚀 Site Build Notify
+on: page_build
+
+jobs:
+  site-build-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Site Build Success Notify
+        uses: zcong1993/actions-ding@master
+        with:
+          dingToken: ${{ secrets.DING_TALK_ACCESS_TOKEN }}
+          ignoreError: true
+          body: |
+            {
+              "msgtype": "link",
+              "link": {
+                "title": "🚀  AntV G6VP 官网部署成功",
+                "text": "点击访问",
+                "messageUrl": "https://graphinsight.antv.vision",
+                "picUrl": "https://gw.alipayobjects.com/mdn/rms_0d75e8/afts/img/A*wnCMQpZDfAQAAAAAAAAAAAAAARQnAQ"
+              }
+            }

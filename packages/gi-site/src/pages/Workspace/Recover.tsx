@@ -1,0 +1,107 @@
+import { FileTextOutlined } from '@ant-design/icons';
+import { Alert, Button, Upload } from 'antd';
+import * as React from 'react';
+import $i18n from '../../i18n';
+const { Dragger } = Upload;
+
+interface RecoverProps {
+  onRecover: (params: any) => void;
+}
+const Recover: React.FunctionComponent<RecoverProps> = props => {
+  const { onRecover } = props;
+  const [state, setState] = React.useState({
+    success: false,
+    project: null,
+  });
+  const { success, project } = state;
+
+  const draggerProps = {
+    name: 'file',
+    customRequest: async options => {
+      const { file, onSuccess, onError } = options;
+      let fileData;
+
+      if (!file) {
+        return false;
+      } else {
+        const reader = new FileReader();
+        reader.readAsText(file, 'utf-8');
+        reader.onload = fileReader => {
+          try {
+            //@ts-ignore
+            fileData = JSON.parse(fileReader.target.result as string);
+
+            setState(preState => {
+              return {
+                ...preState,
+                success: true,
+                project: fileData,
+              };
+            });
+            onSuccess('Ok');
+          } catch (error) {
+            setState(preState => {
+              return {
+                ...preState,
+                success: false,
+                project: null,
+              };
+            });
+            onError('Error');
+          }
+        };
+      }
+    },
+  };
+
+  const handleRecover = () => {
+    if (!project) {
+      return;
+    }
+    onRecover && onRecover(project);
+  };
+
+  return (
+    <>
+      <Alert
+        style={{ marginBottom: '8px' }}
+        type="warning"
+        message={$i18n.get({
+          id: 'gi-site.pages.Workspace.Recover.AttentionTheSiteParsesAnd',
+          dm: '注意⚠️：站点会解析文件并运行，如果是他人分享的文件，请先确保安全可信。',
+        })}
+      />
+
+      <div
+        style={{
+          textAlign: 'center',
+        }}
+      >
+        <Dragger {...draggerProps}>
+          <p className="ant-upload-drag-icon">
+            <FileTextOutlined />
+          </p>
+          <p>
+            {$i18n.get({
+              id: 'gi-site.pages.Workspace.Recover.TheDownloadedWorkbookFileCan',
+              dm: '下载的工作簿文件，可以在这里通过「点击」或者「拖拽」上传恢复',
+            })}
+          </p>
+        </Dragger>
+        <Button
+          type="primary"
+          shape="round"
+          style={{
+            marginTop: '12px',
+          }}
+          onClick={handleRecover}
+          disabled={!success}
+        >
+          {$i18n.get({ id: 'gi-site.pages.Workspace.Recover.RestoreTheProjectNow', dm: '立即恢复项目' })}
+        </Button>
+      </div>
+    </>
+  );
+};
+
+export default Recover;

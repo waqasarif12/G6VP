@@ -1,0 +1,68 @@
+{
+  "name": "@antv/gi-httpservice",
+  "version": "1.2.9",
+  "description": "G6VP 对接社区引擎的 HTTPServer，基于 Egg 框架",
+  "private": true,
+  "egg": {
+    "typescript": true,
+    "declarations": true
+  },
+  "scripts": {
+    "pro": "npm run tsc && egg-scripts start",
+    "stop": "egg-scripts stop --title=egg-server-gi-standalone-service",
+    "start": "egg-scripts start --port=7001",
+    "build:docker": "npm run tsc && rm -rf ./node_modules && npm install --production",
+    "build": "npm run tsc && rm -rf ./node_modules && npm install --production && tar -zcvf ./gi-httpsever-release.tgz .",
+    "tar": "tar -zcvf ./gi-httpservice.tgz .",
+    "dev": "egg-bin dev",
+    "debug": "egg-bin debug",
+    "test-local": "egg-bin test",
+    "test": "npm run lint -- --fix && npm run test-local",
+    "cov": "egg-bin cov",
+    "tsc": "ets && tsc -p tsconfig.json",
+    "ci": "npm run lint && npm run cov && npm run tsc",
+    "autod": "autod",
+    "lint": "eslint . --ext .ts --resolve-plugins-relative-to ."
+  },
+  "dependencies": {
+    "egg": "^2.6.1",
+    "egg-cors": "^2.2.3",
+    "egg-scripts": "^2.6.0",
+    "egg-view-nunjucks": "^2.3.0",
+    "etcd3": "^1.1.0",
+    "gremlin": "^3.6.4",
+    "gremlin_patch": "^3.5.2",
+    "neo4j-driver": "^5.8.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@antv/gi-sdk": "^2.4.19",
+    "@antv/graphin": "^2.7.27",
+    "@eggjs/tsconfig": "^1.0.0",
+    "@types/gremlin": "^3.6.1",
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.12",
+    "@types/supertest": "^2.0.0",
+    "autod": "^3.0.1",
+    "autod-egg": "^1.1.0",
+    "egg-bin": "^4.11.0",
+    "egg-ci": "^2.1.0",
+    "egg-mock": "^3.16.0",
+    "eslint": "^8.0.0",
+    "eslint-config-egg": "^12.0.0",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "ci": {
+    "version": "14, 16, 18"
+  },
+  "repository": "https://github.com/antvis/G6VP.git",
+  "eslintIgnore": [
+    "coverage"
+  ],
+  "author": "baizn",
+  "license": "MIT"
+}

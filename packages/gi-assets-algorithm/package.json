@@ -1,0 +1,60 @@
+{
+  "name": "@antv/gi-assets-algorithm",
+  "version": "2.3.19",
+  "description": "G6VP 图分析算法资产库",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/G6VP.git"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.less"
+  ],
+  "author": "yifeng.dst <yifeng.dst@antgroup.com>",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "dist",
+    "es",
+    "lib"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:es & npm run build:umd",
+    "build:es": "father build",
+    "build:umd": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi-assets-algorithm",
+    "build:umd:analysis": "webpack  --mode production  -c ../../webpack.config.js --env path=/packages/gi-assets-algorithm analysis=true",
+    "clean": "rimraf es esm lib dist",
+    "docs": "dumi dev",
+    "prettier": "prettier --write ./src/**/**/**/*.js",
+    "start": "npm run clean && father build --watch",
+    "test": "jest",
+    "sync": "tnpm sync @antv/gi-assets-algorithm"
+  },
+  "dependencies": {
+    "@aligov/global-locale": "^1.0.5",
+    "@aligov/global-string-format": "^1.0.7",
+    "@ant-design/icons": "^4.7.0",
+    "@antv/algorithm": "^0.1.26-beta.0",
+    "@antv/g2plot": "^2.4.31",
+    "@antv/gi-common-components": "workspace:*",
+    "@antv/gi-sdk": "workspace:*",
+    "@antv/matrix-util": "^3.0.4",
+    "@antv/s2": "^1.48.0",
+    "@antv/s2-react": "^1.41.0",
+    "ahooks": "^3.7.7",
+    "deepmerge": "^4.2.2",
+    "lodash": "^4.17.21",
+    "use-immer": "^0.9.0"
+  },
+  "peerDependencies": {
+    "@ant-design/icons": "^4.7.0",
+    "@antv/g2plot": "^2.4.31",
+    "@antv/graphin": "^2.7.27",
+    "react": "17.x",
+    "react-dom": "17.x"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
